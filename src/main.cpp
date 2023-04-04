@@ -9,7 +9,7 @@
 
 TFT_eSPI tft = TFT_eSPI();
 
-uint32_t background = TFT_RED;
+uint32_t background = TFT_GREENYELLOW;
 
 void setup() 
 {
