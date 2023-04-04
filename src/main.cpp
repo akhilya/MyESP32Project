@@ -5,6 +5,8 @@
 
 #include "OneButton.h"
 
+#define DISABLE_ALL_LIBRARY_WARNINGS
+
 TFT_eSPI tft = TFT_eSPI();
 
 uint32_t background = TFT_RED;
