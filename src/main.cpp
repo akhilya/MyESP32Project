@@ -2,31 +2,32 @@
 #include <TFT_eSPI.h>
 #include <SPI.h>
 #include "pin_config.h"
-
 #include "OneButton.h"
+#include "ClientManager.h"
 
 #define DISABLE_ALL_LIBRARY_WARNINGS
 
 TFT_eSPI tft = TFT_eSPI();
 
-uint32_t background = TFT_GREENYELLOW;
+uint32_t background = TFT_BLACK;
+ClientManager cm;
 
 void setup() 
 {
     tft.init();
 	tft.fillScreen(background);
-	tft.setRotation(2);
+	tft.setRotation(1);
 
-	tft.setTextSize(5);
+	tft.setTextSize(3);
 	tft.setTextColor(TFT_WHITE, background, true);
-	tft.setTextWrap(false);
+	tft.setTextWrap(true);
+
+	cm.setupConnection();
 }
 
 void loop()
 {
-    static int counter = 0;
-
 	tft.setCursor(0, 0);
-	tft.print("Hello world?\n" + String(millis() / 10.0));
+	tft.print(String(cm.receivedData.text) + "\n" + String(millis() / 1000.0));
 	delay(10);
 }

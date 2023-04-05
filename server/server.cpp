@@ -2,15 +2,9 @@
 #include <string>
 #include <cstring>
 #include <winsock2.h>
+#include "../include/RGBString.h"
 
 #pragma comment(lib, "ws2_32.lib")
-
-struct Data {
-    char text[256];
-    int red;
-    int green;
-    int blue;
-};
 
 int main() {
     WSADATA wsaData;
@@ -52,11 +46,12 @@ int main() {
 
     while (ClientSocket == INVALID_SOCKET) {
         ClientSocket = accept(ListenSocket, NULL, NULL);
+        printf("Listening on: %s", service.sin_addr.s_addr);
     }
 
     std::cout << "Client connected!\n";
 
-    Data data = { "Hello, client!", 255, 0, 0 };
+    RGBString data = { "Hello, client!", 255, 0, 0 };
 
     while (true) {
         // Отправляем данные клиенту

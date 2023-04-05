@@ -1,16 +1,12 @@
-#include <WiFi.h>
+#include "ClientManager.h"
 
-const char* ssid = "your_SSID_here";
-const char* password = "your_PASSWORD_here";
+const char* ssid = "bruhhh";
+const char* password = "leha_8907";
 
-struct RGB {
-    uint8_t r;
-    uint8_t g;
-    uint8_t b;
-    char text[256];
-};
+RGBString ClientManager::receivedData;
 
-void setupConnection() {
+void ClientManager::setupConnection() 
+{
     Serial.begin(115200);
 
     WiFi.begin(ssid, password);
@@ -19,24 +15,23 @@ void setupConnection() {
     }
 
     WiFiClient client;
-    IPAddress serverIP(192, 168, 1, 100);
-    int serverPort = 1234;
+    IPAddress serverIP(127, 0, 0, 1);
+    int serverPort = 8080;
     if (client.connect(serverIP, serverPort)) {
         client.write("get_data", 8);
     }
 
-    RGB data;
-    int bytesRead = client.read((uint8_t*)&data, sizeof(RGB));
-    if (bytesRead == sizeof(RGB)) {
+    int bytesRead = client.read((uint8_t*)&receivedData, sizeof(RGBString));
+    if (bytesRead == sizeof(RGBString)) {
         Serial.println("Received data:");
         Serial.print("Red: ");
-        Serial.println(data.r);
+        Serial.println(receivedData.red);
         Serial.print("Green: ");
-        Serial.println(data.g);
+        Serial.println(receivedData.green);
         Serial.print("Blue: ");
-        Serial.println(data.b);
+        Serial.println(receivedData.blue);
         Serial.print("Text: ");
-        Serial.println(data.text);
+        Serial.println(receivedData.text);
     }
 
     client.stop();
