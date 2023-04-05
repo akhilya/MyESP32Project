@@ -28,6 +28,17 @@ std::string get_http_response(const RGB& color, const std::string& message) {
     response += std::to_string(color.b) + ")\">";
     response += "<h1>" + message + "</h1>";
     response += "</body></html>";
+
+    return response;
+}
+
+std::string get_plain_response(const RGB& color, const std::string& message) {
+    std::string response = "HTTP/1.1 200 OK\r\n";
+    response += "Content-Type: text/html; charset=UTF-8\r\n\r\n";
+    response += std::to_string(color.r) + " ";
+    response += std::to_string(color.g) + " ";
+    response += std::to_string(color.b) + " ";
+    response += message;
     return response;
 }
 
@@ -40,12 +51,25 @@ void handle_request(SOCKET client_socket) {
         return;
     }
 
-    // Получаем цвет из запроса
+    std::string request_path(buffer);
+    std::string response;
     RGB color = { 35, 69, 189 };
-    sscanf(buffer, "GET /color?r=%hhu&g=%hhu&b=%hhu", &color.r, &color.g, &color.b);
 
-    // Формируем HTTP-ответ
-    std::string response = get_http_response(color, "Hello, world!");
+    std::cout << request_path << std::endl;
+
+    // Формируем HTTP-ответ по определённым запросам
+    if (request_path.find("/data") != std::string::npos){
+        response = get_plain_response(color, "Hello, world!");
+    }
+    else if (request_path.find("/html") != std::string::npos){
+        response = get_http_response(color, "Hello, world!");
+    }
+    else 
+        response = "404 Not Found";
+
+    // Получаем цвет из запроса
+    //RGB color = { 35, 69, 189 };
+    //sscanf(buffer, "GET /color?r=%hhu&g=%hhu&b=%hhu", &color.r, &color.g, &color.b);
 
     // Отправляем HTTP-ответ клиенту
     int bytes_sent = send(client_socket, response.c_str(), response.size(), 0);
