@@ -41,7 +41,7 @@ void handle_request(SOCKET client_socket) {
     }
 
     // Получаем цвет из запроса
-    RGB color = { 255, 69, 169 };
+    RGB color = { 35, 69, 189 };
     sscanf(buffer, "GET /color?r=%hhu&g=%hhu&b=%hhu", &color.r, &color.g, &color.b);
 
     // Формируем HTTP-ответ
