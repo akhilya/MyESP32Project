@@ -1,87 +1,120 @@
 #include <iostream>
 #include <string>
-#include <cstring>
 #include <winsock2.h>
-#include "../include/RGBString.h"
+#include <windows.h>
+#include <stdio.h>
 
 #pragma comment(lib, "ws2_32.lib")
 
+struct RGB {
+    unsigned char r;
+    unsigned char g;
+    unsigned char b;
+};
+
+void run_server(int);
+
 int main() {
-    WSADATA wsaData;
-    int iResult = WSAStartup(MAKEWORD(2, 2), &wsaData);
-    if (iResult != 0) {
-        std::cout << "WSAStartup failed: " << iResult << std::endl;
-        return 1;
+    run_server(80);
+    return 0;
+}
+
+std::string get_http_response(const RGB& color, const std::string& message) {
+    std::string response = "HTTP/1.1 200 OK\r\n";
+    response += "Content-Type: text/html; charset=UTF-8\r\n\r\n";
+    response += "<html><body style=\"background-color:rgb(";
+    response += std::to_string(color.r) + ",";
+    response += std::to_string(color.g) + ",";
+    response += std::to_string(color.b) + ")\">";
+    response += "<h1>" + message + "</h1>";
+    response += "</body></html>";
+    return response;
+}
+
+void handle_request(SOCKET client_socket) {
+    // Получаем запрос от клиента
+    char buffer[1024] = { 0 };
+    int bytes_received = recv(client_socket, buffer, sizeof(buffer), 0);
+    if (bytes_received == SOCKET_ERROR) {
+        std::cerr << "recv failed: " << WSAGetLastError() << std::endl;
+        return;
     }
 
-    SOCKET ListenSocket = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
-    if (ListenSocket == INVALID_SOCKET) {
-        std::cout << "socket creation error: " << WSAGetLastError() << std::endl;
+    // Получаем цвет из запроса
+    RGB color = { 255, 69, 169 };
+    sscanf(buffer, "GET /color?r=%hhu&g=%hhu&b=%hhu", &color.r, &color.g, &color.b);
+
+    // Формируем HTTP-ответ
+    std::string response = get_http_response(color, "Hello, world!");
+
+    // Отправляем HTTP-ответ клиенту
+    int bytes_sent = send(client_socket, response.c_str(), response.size(), 0);
+    if (bytes_sent == SOCKET_ERROR) {
+        std::cerr << "send failed: " << WSAGetLastError() << std::endl;
+        return;
+    }
+
+    // Закрываем соединение с клиентом
+    closesocket(client_socket);
+}
+
+void run_server(int port) {
+    // Инициализируем библиотеку Winsock
+    WSADATA wsa_data;
+    int result = WSAStartup(MAKEWORD(2, 2), &wsa_data);
+    if (result != 0) {
+        std::cerr << "WSAStartup failed: " << result << std::endl;
+        return;
+    }
+
+    // Создаем сокет для прослушивания входящих запросов
+    SOCKET listen_socket = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
+    if (listen_socket == INVALID_SOCKET) {
+        std::cerr << "socket failed: " << WSAGetLastError() << std::endl;
         WSACleanup();
-        return 1;
+        return;
     }
 
-    sockaddr_in service;
-    service.sin_family = AF_INET;
-    service.sin_addr.s_addr = INADDR_ANY;
-    service.sin_port = htons(8080);
-
-    if (bind(ListenSocket, (SOCKADDR*)&service, sizeof(service)) == SOCKET_ERROR) {
-        std::cout << "bind failed with error: " << WSAGetLastError() << std::endl;
-        closesocket(ListenSocket);
+    // Привязываем сокет к порту
+    sockaddr_in addr = { 0 };
+    addr.sin_family = AF_INET;
+    addr.sin_addr.s_addr = htonl(INADDR_ANY);
+    addr.sin_port = htons(port);
+    result = bind(listen_socket, (SOCKADDR*)&addr, sizeof(addr));
+    if (result == SOCKET_ERROR) {
+        std::cerr << "bind failed: " << WSAGetLastError() << std::endl;
+        closesocket(listen_socket);
         WSACleanup();
-        return 1;
+        return;
     }
 
-    if (listen(ListenSocket, SOMAXCONN) == SOCKET_ERROR) {
-        std::cout << "listen failed with error: " << WSAGetLastError() << std::endl;
-        closesocket(ListenSocket);
+    // Начинаем прослушивать входящие запросы
+    result = listen(listen_socket, SOMAXCONN);
+    if (result == SOCKET_ERROR) {
+        std::cerr << "listen failed: " << WSAGetLastError() << std::endl;
+        closesocket(listen_socket);
         WSACleanup();
-        return 1;
+        return;
     }
 
-    std::cout << "Server is running, waiting for client to connect...\n";
-
-    SOCKET ClientSocket = INVALID_SOCKET;
-
-    while (ClientSocket == INVALID_SOCKET) {
-        ClientSocket = accept(ListenSocket, NULL, NULL);
-        printf("Listening on: %s", service.sin_addr.s_addr);
-    }
-
-    std::cout << "Client connected!\n";
-
-    RGBString data = { "Hello, client!", 255, 0, 0 };
-
+    // Обрабатываем входящие запросы
     while (true) {
-        // Отправляем данные клиенту
-        int bytesSent = send(ClientSocket, (char*)&data, sizeof(data), 0);
-        if (bytesSent == SOCKET_ERROR) {
-            std::cout << "send failed with error: " << WSAGetLastError() << std::endl;
-            closesocket(ClientSocket);
+        // Принимаем входящее соединение
+        sockaddr_in client_addr = { 0 };
+        int addr_len = sizeof(client_addr);
+        SOCKET client_socket = accept(listen_socket, (SOCKADDR*)&client_addr, &addr_len);
+        if (client_socket == INVALID_SOCKET) {
+            std::cerr << "accept failed: " << WSAGetLastError() << std::endl;
+            closesocket(listen_socket);
             WSACleanup();
-            return 1;
+            return;
         }
 
-        std::cout << "Sent message:\n";
-        std::cout << "Text: " << data.text << '\n';
-        std::cout << "Color: (" << data.red << ", " << data.green << ", " << data.blue << ")\n\n";
-
-        // Ждем 1 секунду перед отправкой следующего сообщения
-        Sleep(1000);
-
-        // Изменяем данные структуры
-        data.red = (data.red + 10) % 256;
-        data.green = (data.green + 20) % 256;
-        data.blue = (data.blue + 30) % 256;
-        std::string message = "Hello, client! Count: ";
-        message += std::to_string(data.red);
-        strcpy(data.text, message.c_str());
+        // Обрабатываем запрос от клиента
+        handle_request(client_socket);
     }
 
-    closesocket(ClientSocket);
-    closesocket(ListenSocket);
+    // Закрываем сокет и освобождаем ресурсы Winsock
+    closesocket(listen_socket);
     WSACleanup();
-
-    return 0;
 }
