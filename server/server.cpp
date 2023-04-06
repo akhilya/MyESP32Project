@@ -6,20 +6,23 @@
 
 #pragma comment(lib, "ws2_32.lib")
 
-struct RGB {
+struct RGB 
+{
     unsigned char r;
     unsigned char g;
     unsigned char b;
 };
 
-void run_server(int);
+void runServer(int);
 
-int main() {
-    run_server(80);
+int main() 
+{
+    runServer(80);
     return 0;
 }
 
-std::string get_http_response(const RGB& color, const std::string& message) {
+std::string getHTTPResponse(const RGB& color, const std::string& message) 
+{
     std::string response = "HTTP/1.1 200 OK\r\n";
     response += "Content-Type: text/html; charset=UTF-8\r\n\r\n";
     response += "<html><body style=\"background-color:rgb(";
@@ -32,7 +35,8 @@ std::string get_http_response(const RGB& color, const std::string& message) {
     return response;
 }
 
-std::string get_plain_response(const RGB& color, const std::string& message) {
+std::string getPlainDataResponse(const RGB& color, const std::string& message) 
+{
     std::string response = "HTTP/1.1 200 OK\r\n";
     response += "Content-Type: text/html; charset=UTF-8\r\n\r\n";
     response += std::to_string(color.r) + " ";
@@ -42,28 +46,30 @@ std::string get_plain_response(const RGB& color, const std::string& message) {
     return response;
 }
 
-void handle_request(SOCKET client_socket) {
+void handleRequest(SOCKET clientSocket) 
+{
     // Получаем запрос от клиента
     char buffer[1024] = { 0 };
-    int bytes_received = recv(client_socket, buffer, sizeof(buffer), 0);
-    if (bytes_received == SOCKET_ERROR) {
+    int bytesReceived = recv(clientSocket, buffer, sizeof(buffer), 0);
+    if (bytesReceived == SOCKET_ERROR) 
+    {
         std::cerr << "recv failed: " << WSAGetLastError() << std::endl;
         return;
     }
 
-    std::string request_path(buffer);
+    std::string requestPath(buffer);
     std::string response;
-    RGB color = { 35, 69, 189 };
 
-    std::cout << request_path << std::endl;
+    RGB sampleColor = { 169, 69, 169 };
+    std::string sampleMessage = "BRUH????";
+
+    std::cout << requestPath << std::endl;
 
     // Формируем HTTP-ответ по определённым запросам
-    if (request_path.find("/data") != std::string::npos){
-        response = get_plain_response(color, "Hello, world!");
-    }
-    else if (request_path.find("/html") != std::string::npos){
-        response = get_http_response(color, "Hello, world!");
-    }
+    if (requestPath.find("/data") != std::string::npos)
+        response = getPlainDataResponse(sampleColor, sampleMessage);
+    else if (requestPath.find("/html") != std::string::npos)
+        response = getHTTPResponse(sampleColor, sampleMessage);
     else 
         response = "404 Not Found";
 
@@ -72,28 +78,32 @@ void handle_request(SOCKET client_socket) {
     //sscanf(buffer, "GET /color?r=%hhu&g=%hhu&b=%hhu", &color.r, &color.g, &color.b);
 
     // Отправляем HTTP-ответ клиенту
-    int bytes_sent = send(client_socket, response.c_str(), response.size(), 0);
-    if (bytes_sent == SOCKET_ERROR) {
+    int bytesSent = send(clientSocket, response.c_str(), response.size(), 0);
+    if (bytesSent == SOCKET_ERROR)
+    {
         std::cerr << "send failed: " << WSAGetLastError() << std::endl;
         return;
     }
 
     // Закрываем соединение с клиентом
-    closesocket(client_socket);
+    closesocket(clientSocket);
 }
 
-void run_server(int port) {
+void runServer(int port) 
+{
     // Инициализируем библиотеку Winsock
     WSADATA wsa_data;
     int result = WSAStartup(MAKEWORD(2, 2), &wsa_data);
-    if (result != 0) {
+    if (result != 0) 
+    {
         std::cerr << "WSAStartup failed: " << result << std::endl;
         return;
     }
 
     // Создаем сокет для прослушивания входящих запросов
-    SOCKET listen_socket = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
-    if (listen_socket == INVALID_SOCKET) {
+    SOCKET listenSocket = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
+    if (listenSocket == INVALID_SOCKET)
+    {
         std::cerr << "socket failed: " << WSAGetLastError() << std::endl;
         WSACleanup();
         return;
@@ -104,41 +114,47 @@ void run_server(int port) {
     addr.sin_family = AF_INET;
     addr.sin_addr.s_addr = htonl(INADDR_ANY);
     addr.sin_port = htons(port);
-    result = bind(listen_socket, (SOCKADDR*)&addr, sizeof(addr));
-    if (result == SOCKET_ERROR) {
+
+    result = bind(listenSocket, (SOCKADDR*)&addr, sizeof(addr));
+    if (result == SOCKET_ERROR)
+    {
         std::cerr << "bind failed: " << WSAGetLastError() << std::endl;
-        closesocket(listen_socket);
+        closesocket(listenSocket);
         WSACleanup();
         return;
     }
 
     // Начинаем прослушивать входящие запросы
-    result = listen(listen_socket, SOMAXCONN);
-    if (result == SOCKET_ERROR) {
+    result = listen(listenSocket, SOMAXCONN);
+    if (result == SOCKET_ERROR) 
+    {
         std::cerr << "listen failed: " << WSAGetLastError() << std::endl;
-        closesocket(listen_socket);
+        closesocket(listenSocket);
         WSACleanup();
         return;
     }
 
     // Обрабатываем входящие запросы
-    while (true) {
+    while (true)
+    {
         // Принимаем входящее соединение
-        sockaddr_in client_addr = { 0 };
-        int addr_len = sizeof(client_addr);
-        SOCKET client_socket = accept(listen_socket, (SOCKADDR*)&client_addr, &addr_len);
-        if (client_socket == INVALID_SOCKET) {
+        sockaddr_in clientAddr = { 0 };
+        int addrLen = sizeof(clientAddr);
+        SOCKET clientSocket = accept(listenSocket, (SOCKADDR*)&clientAddr, &addrLen);
+        
+        if (clientSocket == INVALID_SOCKET) 
+        {
             std::cerr << "accept failed: " << WSAGetLastError() << std::endl;
-            closesocket(listen_socket);
+            closesocket(listenSocket);
             WSACleanup();
             return;
         }
 
         // Обрабатываем запрос от клиента
-        handle_request(client_socket);
+        handleRequest(clientSocket);
     }
 
     // Закрываем сокет и освобождаем ресурсы Winsock
-    closesocket(listen_socket);
+    closesocket(listenSocket);
     WSACleanup();
 }
