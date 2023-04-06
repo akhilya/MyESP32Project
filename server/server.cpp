@@ -72,14 +72,13 @@ void handleRequest(SOCKET clientSocket)
         response = getPlainDataResponse(bgColor, sampleMessage);
     else if (requestPath.find("/html") != string::npos)
     {
+        // Получаем цвет из запроса
         sscanf(requestPath.c_str(), "GET /color?r=%hhu&g=%hhu&b=%hhu", &bgColor.r, &bgColor.g, &bgColor.b);
+        // Подготавливаем ответ на запрос 
         response = getHTTPResponse(bgColor, sampleMessage);
     }
     else 
         response = "404 Not Found";
-
-    // Получаем цвет из запроса
-    //RGB color = { 35, 69, 189 };
 
     // Отправляем HTTP-ответ клиенту
     int bytesSent = send(clientSocket, response.c_str(), response.size(), 0);
