@@ -1,23 +1,23 @@
 #define DISABLE_ALL_LIBRARY_WARNINGS
 
-#include <Arduino.h>
-#include <TFT_eSPI.h>
-#include <SPI.h>
+#include <String>
+#include "Arduino.h"
+#include "TFT_eSPI.h"
+#include "SPI.h"
 #include "pin_config.h"
 #include "OneButton.h"
-#include <WiFi.h>
-#include <HTTPClient.h>
-#include <string>
+#include "WiFi.h"
+#include "HTTPClient.h"
 #include "displayUtility.h"
 
 using namespace std;
+
+uint32_t background = TFT_BLACK;
 
 TFT_eSPI tft = TFT_eSPI();
 const char *SSID = "x-home";
 const char *PASSWORD = "deukecrh";
 const char *SERVER_IP = "192.168.49.246";
-
-uint32_t background = TFT_BLACK;
 
 HTTPClient HTTP;
 String fetchData();
