@@ -74,7 +74,10 @@ void handleRequest(SOCKET clientSocket)
 	else if (requestPath.find("/html") != string::npos)
 	{
 		// Получаем цвет из запроса
-		sscanf(requestPath.c_str(), "GET /?r=%hhu&g=%hhu&b=%hhu", &bgColor.r, &bgColor.g, &bgColor.b);
+		char messageBuffer[20];
+		sscanf(requestPath.c_str(), "GET /?r=%hhu&g=%hhu&b=%hhu&message=%s", 
+			&bgColor.r, &bgColor.g, &bgColor.b, messageBuffer);
+		sampleMessage = messageBuffer;
 		// Подготавливаем ответ на запрос 
 		response = getHTTPResponse(bgColor, sampleMessage);
 	}

@@ -2,13 +2,37 @@
 <html>
 	<head></head>
 	<body style="background-color:rgb(255,0,0)">
-		<h1>BRUH????</h1>
+		<li>
+			<input type="color" onchange="updateParams(true)" id="color-picker"/>
+			<input type="text" maxlength="20" onchange="updateParams(true)" id="text-field"/>
+		</li>
 	</body>
-	<input type="color" onchange="updateColor(true)" id="color-picker"/>
 </html>
 
 <script>
-	window.addEventListener("load", updateColor(false));
+	window.addEventListener("load", updateParams(false));
+
+	function updateParams(reload)
+	{
+		let colorPicker = document.querySelector("#color-picker");
+		let hexColor = colorPicker.value;
+		let rgbColor = hexToRgb(hexColor);
+
+		document.body.style.backgroundColor = hexColor;
+
+		let textField = document.querySelector("#text-field");
+		let message = textField.value;
+
+		let params = new URLSearchParams(location.search);
+		params.set('r', rgbColor.r);
+		params.set('g', rgbColor.g);
+		params.set('b', rgbColor.b);
+		params.set('message', message);
+		window.history.replaceState({}, '', `${location.pathname}?${params}`);
+
+		if (reload)
+			window.location.reload();
+	}
 
 	function hexToRgb(hex) 
 	{
@@ -19,23 +43,5 @@
 			g: parseInt(result[2], 16),
 			b: parseInt(result[3], 16)
 		} : null;
-	}
-
-	function updateColor(reload) 
-	{
-		let colorPicker = document.querySelector("#color-picker");
-		let hexColor = colorPicker.value;
-		let rgbColor = hexToRgb(hexColor);
-
-		document.body.style.backgroundColor = hexColor;
-
-		let params = new URLSearchParams(location.search);
-		params.set('r', rgbColor.r);
-		params.set('g', rgbColor.g);
-		params.set('b', rgbColor.b);
-		window.history.replaceState({}, '', `${location.pathname}?${params}`);
-		
-		if (reload)
-			window.location.reload();
 	}
 </script>
