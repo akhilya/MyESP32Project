@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html>
+	<head></head>
+	<body style="background-color:rgb(255,0,0)">
+		<h1>BRUH????</h1>
+	</body>
+	<input type="color" onchange="updateColor(true)" id="color-picker"/>
+</html>
+
+<script>
+	window.addEventListener("load", updateColor(false));
+
+	function hexToRgb(hex) 
+	{
+		var result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+		return result ? 
+		{
+			r: parseInt(result[1], 16),
+			g: parseInt(result[2], 16),
+			b: parseInt(result[3], 16)
+		} : null;
+	}
+
+	function updateColor(reload) 
+	{
+		let colorPicker = document.querySelector("#color-picker");
+		let hexColor = colorPicker.value;
+		let rgbColor = hexToRgb(hexColor);
+
+		document.body.style.backgroundColor = hexColor;
+
+		let params = new URLSearchParams(location.search);
+		params.set('r', rgbColor.r);
+		params.set('g', rgbColor.g);
+		params.set('b', rgbColor.b);
+		window.history.replaceState({}, '', `${location.pathname}?${params}`);
+		
+		if (reload)
+			window.location.reload();
+	}
+</script>

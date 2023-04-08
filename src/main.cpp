@@ -1,5 +1,3 @@
-#define DISABLE_ALL_LIBRARY_WARNINGS
-
 #include <String>
 #include "Arduino.h"
 #include "TFT_eSPI.h"
@@ -71,7 +69,7 @@ void setup()
 {
 	tft.init();
 	tft.fillScreen(background);
-	tft.setRotation(1);
+	tft.setRotation(-1);
 
 	tft.setTextSize(3);
 	tft.setTextWrap(true);
