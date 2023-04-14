@@ -2,18 +2,12 @@
 #include "Arduino.h"
 #include "TFT_eSPI.h"
 #include "SPI.h"
-#include "pin_config.h"
+#include "pinConfig.h"
 #include "OneButton.h"
 #include "WiFi.h"
 #include "HTTPClient.h"
 #include "displayUtility.h"
-
-#include <iostream>
-#include <String>
-#include <sstream>
-#include <algorithm>
-#include <cctype>
-#include <iomanip>
+#include "URLDecoder.h"
 
 using namespace std;
 
@@ -30,31 +24,6 @@ void breakHTTPConnection()
 {
 	HTTP.end();
 	Serial.println("Disconnected from HTTP server");
-}
-
-string urlDecode(const string& encodedText) 
-{
-	stringstream decodedText;
-	for (size_t i = 0; i < encodedText.length(); ++i) {
-	if (encodedText[i] == '+')
-		decodedText << ' '; 
-	else if (encodedText[i] == '%' && i + 2 < encodedText.length()) 
-	{
-		istringstream hexStream(encodedText.substr(i + 1, 2));
-		int hexValue = 0;
-		hexStream >> hex >> hexValue;
-		if (hexStream.fail()) 
-		{
-			// Ошибка в декодировании
-			throw runtime_error("Failed to decode URL-encoded text");
-	  	}
-	  	decodedText << static_cast<char>(hexValue);
-	  	i += 2;
-	} 
-	else 
-		decodedText << encodedText[i];
-  }
-  return decodedText.str();
 }
 
 void processResponse(String response, String* message, int* r, int* g, int* b)
