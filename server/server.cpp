@@ -49,8 +49,8 @@ string getPlainDataResponse(const RGB& color, const string& message)
 	return response;
 }
 
-RGB bgColor = { 169, 69, 169 };
-string sampleMessage = "BRUH????";
+RGB bgColor = { 255, 0, 0 };
+string sampleMessage = "Sample message";
 
 void handleRequest(SOCKET clientSocket) 
 {
@@ -63,19 +63,19 @@ void handleRequest(SOCKET clientSocket)
 		return;
 	}
 
-	string requestPath(buffer);
+	string request(buffer);
 	string response;
 
-	cout << requestPath << endl;
+	cout << request << endl;
 
 	// Формируем HTTP-ответ по определённым запросам
-	if (requestPath.find("/data") != string::npos)
+	if (request.find("/data") != string::npos)
 		response = getPlainDataResponse(bgColor, sampleMessage);
-	else if (requestPath.find("/html") != string::npos)
+	else if (request.find("/html") != string::npos)
 	{
 		// Получаем цвет из запроса
-		char messageBuffer[20];
-		sscanf(requestPath.c_str(), "GET /?r=%hhu&g=%hhu&b=%hhu&message=%s", 
+		char messageBuffer[500];
+		sscanf(request.c_str(), "GET /?r=%hhu&g=%hhu&b=%hhu&message=%s", 
 			&bgColor.r, &bgColor.g, &bgColor.b, messageBuffer);
 		sampleMessage = messageBuffer;
 		// Подготавливаем ответ на запрос 

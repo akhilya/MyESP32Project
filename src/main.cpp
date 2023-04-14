@@ -8,6 +8,13 @@
 #include "HTTPClient.h"
 #include "displayUtility.h"
 
+#include <iostream>
+#include <String>
+#include <sstream>
+#include <algorithm>
+#include <cctype>
+#include <iomanip>
+
 using namespace std;
 
 uint32_t background = TFT_BLACK;
@@ -25,6 +32,31 @@ void breakHTTPConnection()
 	Serial.println("Disconnected from HTTP server");
 }
 
+string urlDecode(const string& encodedText) 
+{
+	stringstream decodedText;
+	for (size_t i = 0; i < encodedText.length(); ++i) {
+	if (encodedText[i] == '+')
+		decodedText << ' '; 
+	else if (encodedText[i] == '%' && i + 2 < encodedText.length()) 
+	{
+		istringstream hexStream(encodedText.substr(i + 1, 2));
+		int hexValue = 0;
+		hexStream >> hex >> hexValue;
+		if (hexStream.fail()) 
+		{
+			// Ошибка в декодировании
+			throw runtime_error("Failed to decode URL-encoded text");
+	  	}
+	  	decodedText << static_cast<char>(hexValue);
+	  	i += 2;
+	} 
+	else 
+		decodedText << encodedText[i];
+  }
+  return decodedText.str();
+}
+
 void processResponse(String response, String* message, int* r, int* g, int* b)
 {
 	sscanf(response.c_str(), "%d %d %d", r, g, b);
@@ -34,23 +66,23 @@ void processResponse(String response, String* message, int* r, int* g, int* b)
 		if (response[idx++] == ' ')
 			whitespaces--;
 	}
-	*message = response.substring(idx, response.length());
+	*message = urlDecode(response.substring(idx, response.length()).c_str()).c_str();
 }
 
 void setupConnection()
 {
-  	Serial.begin(9600);
+	  Serial.begin(9600);
 
-  	WiFi.begin(SSID, PASSWORD);
-  	while (WiFi.status() != WL_CONNECTED)
+	  WiFi.begin(SSID, PASSWORD);
+	  while (WiFi.status() != WL_CONNECTED)
 	{
 		delay(1000);
 		Serial.println("Connecting to WiFi...");
-  	}
-  	Serial.println("Connected to WiFi");
+	  }
+	  Serial.println("Connected to WiFi");
 
-  	// Send HTTP GET request
-  	HTTP.begin(SERVER_IP, 80, "/data");
+	  // Send HTTP GET request
+	  HTTP.begin(SERVER_IP, 80, "/data");
 }
 
 const char *NULL_HTTP_RESPONSE = ""; 
