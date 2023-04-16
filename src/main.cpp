@@ -2,8 +2,8 @@
 #include "Arduino.h"
 #include "TFT_eSPI.h"
 #include "SPI.h"
-#include "pinConfig.h"
-#include "OneButton.h"
+//#include "pinConfig.h"
+//#include "OneButton.h"
 #include "WiFi.h"
 #include "HTTPClient.h"
 #include "displayUtility.h"
@@ -40,18 +40,18 @@ void processResponse(String response, String* message, int* r, int* g, int* b)
 
 void setupConnection()
 {
-	  Serial.begin(9600);
+	Serial.begin(9600);
 
-	  WiFi.begin(SSID, PASSWORD);
-	  while (WiFi.status() != WL_CONNECTED)
+	WiFi.begin(SSID, PASSWORD);
+	while (WiFi.status() != WL_CONNECTED)
 	{
 		delay(1000);
 		Serial.println("Connecting to WiFi...");
-	  }
-	  Serial.println("Connected to WiFi");
+	}
+	Serial.println("Connected to WiFi");
 
-	  // Send HTTP GET request
-	  HTTP.begin(SERVER_IP, 80, "/data");
+	// Send HTTP GET request
+	HTTP.begin(SERVER_IP, 80, "/data");
 }
 
 const char *NULL_HTTP_RESPONSE = ""; 
@@ -94,7 +94,7 @@ void loop()
 	tft.setTextColor(TFT_WHITE, background);
 	tft.fillScreen(background);
 	tft.setCursor(0, 0);
-	tft.print(message + "\n" + String(millis() / 1000.0));	
+	tft.print(message + "\n\n" + String(millis() / 1000.0) + " sec");	
 
 	delay(1000);
 }
